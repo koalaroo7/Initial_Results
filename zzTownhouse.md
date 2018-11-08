@@ -319,7 +319,7 @@ missmap(melHouse) # visualise missing values
 
     ## Warning: Unknown or uninitialised column: 'imputations'.
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-6-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
 ``` r
 # Actual NA values followed by percentage of NA values
@@ -726,7 +726,7 @@ library(corrplot)
 corrplot(cor(melExCorr), method = 'number')
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-17-1.png)
 
 ``` r
 # Nothing as of now will be dropped as there is no correlation above 80
@@ -1236,7 +1236,7 @@ missmap(melHouse) # visualise missing values
 
     ## Warning: Unknown or uninitialised column: 'imputations'.
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-25-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-25-1.png)
 
 ``` r
 # Actual NA values followed by percentage of NA values
@@ -1638,7 +1638,7 @@ library(corrplot)
 corrplot(cor(melExCorr), method = 'number')
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-36-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-36-1.png)
 
 ``` r
 # Nothing as of now will be dropped as there is no correlation above 80
@@ -1758,13 +1758,13 @@ library(mlbench)
 hist(mxtownhouse$Price)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-40-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-40-1.png)
 
 ``` r
 plot(mxtownhouse$Price)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-41-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-41-1.png)
 
 ``` r
 # price
@@ -1773,14 +1773,14 @@ tp1 <- log10(mxtownhouse$Price)
 hist(tp1, main = 'Histogram of Log10(Price)', xlab = 'Log10(Price)')
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-42-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-42-1.png)
 
 ``` r
 # price
 plot(tp1)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-43-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-43-1.png)
 
 ``` r
 # Rooms
@@ -1794,7 +1794,7 @@ summary(mxtownhouse$Rooms)
 hist(mxtownhouse$Rooms) 
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-44-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-44-1.png)
 
 ``` r
 # Distance
@@ -1802,7 +1802,7 @@ hist(mxtownhouse$Rooms)
 hist(mxtownhouse$Distance) #skewed
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-48-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-48-1.png)
 
 ``` r
 # check Distance for min distance to determine if it can be log10 without addition
@@ -1840,19 +1840,19 @@ td2 <- log10(td1)
 hist(td2)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-50-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-50-1.png)
 
 ``` r
 qqnorm(y = tp1, x = td2) 
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-51-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-51-1.png)
 
 ``` r
 plot(td2)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-52-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-52-1.png)
 
 ``` r
 # Bathrooms
@@ -1860,14 +1860,14 @@ plot(td2)
 hist(mxtownhouse$Bathroom)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-53-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-53-1.png)
 
 ``` r
 # Parking spots
 hist(mxtownhouse$Car) 
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-55-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-55-1.png)
 
 ``` r
 # LandSize
@@ -1875,35 +1875,35 @@ hist(mxtownhouse$Car)
 hist(mxtownhouse$Landsize) #skewed
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-57-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-57-1.png)
 
 ``` r
 tland <- log10(mxtownhouse$Landsize)
 hist(tland) # still seems skewed
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-58-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-58-1.png)
 
 ``` r
 #builing Area
 hist(mxtownhouse$BuildingArea)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-59-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-59-1.png)
 
 ``` r
 tba <- log10(mxtownhouse$BuildingArea)
 hist(tba, main = 'Histogram Log10(BuildingArea)') # better
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-60-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-60-1.png)
 
 ``` r
 #correlation, scatterplots, histograms
 pairs.panels(mxapartment) # prior to setting anything to log10
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-61-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-61-1.png)
 
 ``` r
 # pretesting simple regression with log10 variables, just to get an idea of the best fitting model
@@ -2334,7 +2334,7 @@ glimpse(tdata3) # verifying it was logged
 pairs.panels(tdata3, cex.cor = 2) # with log10 data, cex.cor =2 makes correlation #'s larger
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-69-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-69-1.png)
 
 ``` r
 # setting up training and test sets
@@ -2609,7 +2609,7 @@ summary(tLinTrain)
 plot(tLinTrain$finalModel)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-72-1.png)![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-72-2.png)![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-72-3.png)![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-72-4.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-72-1.png)![](zztownhouse_files/figure-markdown_github/unnamed-chunk-72-2.png)![](zztownhouse_files/figure-markdown_github/unnamed-chunk-72-3.png)![](zztownhouse_files/figure-markdown_github/unnamed-chunk-72-4.png)
 
 ``` r
 #seems to be an issue at cooks distance
@@ -2634,7 +2634,7 @@ tRidge <- train(Price ~.,
 plot(tRidge) # Showing RMSE responding to increase in Lambda values
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-74-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-74-1.png)
 
 ``` r
 print(tRidge)
@@ -2667,7 +2667,7 @@ print(tRidge)
 plot(varImp(tRidge, scale = F)) 
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-76-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-76-1.png)
 
 ``` r
 # Lasso Regression
@@ -2689,19 +2689,19 @@ tLasso <- train(Price ~.,
 plot(tLasso) # lowest lambda is best for lasso as well
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-78-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-78-1.png)
 
 ``` r
 plot(varImp(tLasso, scale = F)) # importance level of variables for Lasso
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-79-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-79-1.png)
 
 ``` r
 plot(tLasso$finalModel, xvar = 'dev', label = T) # 4 variables explain 60%
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-80-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-80-1.png)
 
 ``` r
 # Elastic Net
@@ -2725,7 +2725,7 @@ tElastic <- train(Price ~.,
 plot(tElastic) #lambda is coloured lines, alpha along bottom, run again with length 3 for alpha for clarity
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-82-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-82-1.png)
 
 ``` r
 tElastic$bestTune #finding optimal lambda & alpha values in a separate way
@@ -3176,7 +3176,7 @@ tForestTry$type # regression
 plot(tForestTry) # graph on error as it reduces and becomes constant for number of trees
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-95-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-95-1.png)
 
 ``` r
 # histogram of the number of nodes per tree
@@ -3185,14 +3185,14 @@ hist(treesize(tForestTry),
      col = 'azure2')
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-96-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-96-1.png)
 
 ``` r
 # graphical display of ForestTry$importance
 varImpPlot(tForestTry, main = 'Variable Importance', col = 'slateblue4') 
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-97-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-97-1.png)
 
 ``` r
 # Number of times a variable appeared in random forest, printed in relation to the variable column number
@@ -3251,7 +3251,7 @@ toTuneForest<- tuneRF(y = toTrain$Price, x = toTrain[,-1],
     ## Searching left ...
     ## Searching right ...
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-102-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-102-1.png)
 
 ``` r
 tForest <- randomForest(Price ~., data = toTrain,
@@ -3276,7 +3276,7 @@ tForest
 plot(tForest)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-104-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-104-1.png)
 
 ``` r
 # getting RMSE for training data
@@ -3286,7 +3286,7 @@ tForestP1 <- predict(tForest, toTrain)
 plot(tForestP1)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-106-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-106-1.png)
 
 ``` r
 # RMSE for training data
@@ -3303,7 +3303,7 @@ tForestP2 <- predict(tForest, toTest)
 plot(tForestP2)
 ```
 
-![](zzTownhouse_files/figure-markdown_github/unnamed-chunk-108-1.png)
+![](zztownhouse_files/figure-markdown_github/unnamed-chunk-108-1.png)
 
 ``` r
 # RMSE for Test data
