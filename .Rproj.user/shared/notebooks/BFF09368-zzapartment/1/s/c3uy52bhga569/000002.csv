@@ -1,0 +1,2 @@
+"0","# plot showing importance of variables for Ridge Regression"
+"0","plot(varImp(aRidge, scale = F)) "

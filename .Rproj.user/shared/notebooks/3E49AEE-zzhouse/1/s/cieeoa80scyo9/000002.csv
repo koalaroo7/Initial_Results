@@ -1,0 +1,7 @@
+"0","# prediction RMSE for Test data"
+"0","PreTest <- predict(ForestTry, mxTest)  "
+"0","(RMSE(PreTest, mxTest$Price))"
+"1","[1]"
+"1"," 0.09031465"
+"1","
+"

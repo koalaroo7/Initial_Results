@@ -1,0 +1,7 @@
+"0","# Predictino for RMSE on Train data"
+"0","PreTry <- predict(ForestTry, mxTrain) # default"
+"0","(RMSE(PreTry, mxTrain$Price))       # default"
+"1","[1]"
+"1"," 0.04118538"
+"1","
+"

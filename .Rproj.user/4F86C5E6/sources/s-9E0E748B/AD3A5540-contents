@@ -1,0 +1,573 @@
+---
+title: "melbapart"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r}
+# Separate apartment section from data, original mouse section must be ran first before this section will work
+summary(mxapartment)
+
+```
+```{r}
+
+# applying Log10 to variables in need for houses only preparing for regressions
+# loading packeages needed
+
+library(caret)
+library(psych)
+library(glmnet)
+library(mlbench)
+
+```
+
+```{r}
+
+# inpspecting Price variable and applying log10 transformation
+
+# price
+hist(mxapartment$Price)
+
+```
+
+```{r}
+
+plot(mxapartment$Price)
+
+```
+
+```{r}
+
+# price
+
+ap1 <- log10(mxapartment$Price)
+hist(ap1, main = 'Histogram of Log10(Price)', xlab = 'Log10(Price)')
+
+```
+
+```{r}
+
+# price
+plot(ap1)
+
+```
+
+```{r}
+
+# Rooms
+summary(mxapartment$Rooms) #min is 2 no need to add 1
+hist(mxapartment$Rooms) 
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+# Distance
+
+hist(mxapartment$Distance) #skewed
+
+```
+
+```{r}
+
+ad1 <- mxapartment$Distance + 2 # adding 2 so the log10 has no 0 values
+ad2 <- log10(ad1)
+hist(ad2, main = 'Histogram of Distance + 2, Log10(Distance)', col = 'lightblue')
+
+
+```
+
+```{r}
+qqnorm(y = ap1, x = ad2) 
+```
+
+```{r}
+plot(ad2)
+```
+
+```{r}
+# Bathrooms
+
+hist(mxapartment$Bathroom)
+
+```
+
+```{r}
+
+```
+
+```{r}
+# Parking spots
+hist(mxapartment$Car) 
+
+```
+
+```{r}
+ 
+```
+
+```{r}
+# LandSize
+
+hist(mxapartment$Landsize) #skewed
+
+
+```
+
+```{r}
+
+aland <- log10(mxapartment$Landsize)
+hist(aland) # still bimodal? need to use non-parametric decision tree and random forest for results, Gaussien model cannot be fitted.
+
+```
+
+```{r}
+
+#builing Area
+hist(mxapartment$BuildingArea)
+
+```
+
+```{r}
+aba <- log10(mxapartment$BuildingArea)
+hist(aba, main = 'Histogram Log10(BuildingArea)') # looks better
+```
+
+```{r}
+#correlation, scatterplots, histograms
+pairs.panels(mxapartment) # prior to setting anything to log10
+```
+
+```{r}
+# pretesting simple regression with log10 variables, just to get an idea of the best fitting model
+# before separating into folds for training and testing
+
+set.seed(99)
+# only price is logged
+
+atrial <- lm(log10(Price) ~., data = mxapartment)
+summary(atrial) 
+```
+
+```{r}
+
+# using a log10 on Price and Distance
+
+adata <- mxapartment
+adata$Distance <- adata$Distance + 2
+adata$Distance <- log10(adata$Distance)
+
+summary(adata)
+atrial2 <- lm(log10(Price) ~., data = adata)
+summary(atrial2) # improves on above model
+```
+
+```{r}
+adata2 <- adata
+adata2$BuildingArea <- log10(adata2$BuildingArea)
+
+atrial3 <- lm(log10(Price) ~., data = adata2)
+summary(atrial3) # improves above model
+
+```
+
+```{r}
+# testing selection methods
+
+# backwards selection
+summary(step(atrial3, direction = 'backward', trace = 0)) 
+
+```
+
+```{r}
+# forwards selection
+summary(step(atrial3, direction = 'forward', trace = 0)) 
+```
+
+```{r}
+# stepwise selection (both)
+summary(step(atrial3, direction = 'both', trace = 0))
+
+# forward selection in minimally more efficient here
+# forward uses all 10 variables,
+# backwards and step use 7 variables
+```
+
+```{r}
+
+# Log10 of Price into data prior to setting training and testing sets
+
+# log10 to Price
+
+adata3 <- adata2
+adata3$Price <- log10(adata2$Price)
+glimpse(adata3) # verifying it was logged
+
+```
+
+```{r}
+#correlation with log10 features
+
+pairs.panels(adata3, cex.cor = 2) # with log10 data, cex.cor =2 makes correlation #'s larger
+
+```
+
+```{r}
+# setting up training and test sets
+
+set.seed(99)
+
+# creating the index for the split to occur
+aIndex <- sample(2, nrow(adata3), replace = T, prob = c(0.7, 0.3))
+
+
+aTrain <- adata3[aIndex == 1, ] # create training set, 70%
+aTest <- adata3[aIndex == 2, ] # create test set, 30%
+
+library(caret)
+
+# creating cross validation, 10 fold, ran 5 times
+# control parameters
+
+aControls <- trainControl(method = 'repeatedcv', number = 10,  repeats = 5, verboseIter = F) #verboseIter shows iterations running on screen
+```
+
+```{r}
+
+# Linear Regression
+
+aLinTrain <- train(Price ~., aTrain, method = 'lm', trControl = aControls)
+aLinTrain$results
+summary(aLinTrain)
+
+```
+
+```{r}
+plot(aLinTrain$finalModel)
+
+#seems to be an issue at residuals vs fitted is not horrible, see if it can be improved
+
+```
+
+```{r}
+set.seed(99)
+
+
+library(glmnet) 
+# Setting up Ridge regression
+
+aRidge <- train(Price ~., 
+                  aTrain, 
+                  method = 'glmnet', 
+                  tuneGrid = expand.grid(alpha = 0,
+                                         lambda = seq(0.0001, 1, length = 5)),
+                  trControl = aControls)
+
+```
+
+```{r}
+plot(aRidge) # Showing RMSE responding to increase in Lambda values
+```
+
+```{r}
+print(aRidge)
+```
+
+```{r}
+# plot showing importance of variables for Ridge Regression
+
+plot(varImp(aRidge, scale = F)) 
+```
+
+```{r}
+
+# Lasso Regression
+
+set.seed(99)
+
+aLasso <- train(Price ~., 
+                         aTrain, 
+                         method = 'glmnet', 
+                         tuneGrid = expand.grid(alpha = 1,
+                                                lambda = seq(0.0001, 1, length = 5)),
+                         trControl = aControls)
+```
+
+```{r}
+plot(aLasso) # lowest lambda is best for lasso as well
+```
+
+```{r}
+plot(varImp(aLasso, scale = F)) # importance level of variables for Lasso
+```
+
+```{r}
+plot(aLasso$finalModel, xvar = 'dev', label = T) # 8 variables explain 50%
+```
+
+```{r}
+# Elastic Net
+
+set.seed(99)
+
+aElastic <- train(Price ~., 
+                         aTrain, 
+                         method = 'glmnet', 
+                         tuneGrid = expand.grid(alpha = seq(0, 1, length =10),
+                                                lambda = seq(0.0001, 1, length = 5)),
+                         trControl = aControls)
+
+```
+
+```{r}
+# best fit for Lamba and Alpha graph
+
+plot(aElastic) #lambda is coloured lines, alpha along bottom, run again with length 3 for alpha for clarity
+
+```
+
+```{r}
+aElastic$bestTune #finding optimal lambda & alpha values in a separate way
+
+```
+
+```{r}
+# Comparing models - MAE, RMSE, Rsquared
+
+aModelList <- list(Ridge = aRidge, Lasso = aLasso, Elastic = aElastic)
+aResample <- resamples(aModelList)
+summary(aResample)
+
+#not allowing linear model due to resample size, inspect this
+```
+
+```{r}
+# Predictions with Training & Test data
+# all models performed closely however the Ridge & Elastic netregression have the best mean RMSE
+# So Ridge will be used here, as RMSE is the main measure of this study
+
+
+# training data prediction & RMSE
+aP1 <- predict(aRidge, aTrain)
+sqrt(mean((aTrain$Price - aP1)^2)) # RMSE - lower the better
+```
+
+```{r}
+# Test data prediction RMSE
+aP2 <- predict(aRidge, aTest)
+sqrt(mean((aTest$Price - aP2)^2))
+
+```
+
+```{r}
+# comparing accuracy
+
+#comparing actual vs predicted values 
+aCompare <- cbind(actual = aTest$Price, aP2) # combining actual and predicted
+
+head(aCompare)
+
+```
+
+```{r}
+# calculating accuracy
+mean (apply(aCompare, 1, min)/apply(aCompare, 1, max))
+
+# The model is very accurate
+```
+
+```{r}
+
+# For the Log10(Distance variable) the percent increase is computed as follows
+
+# (Distance1/ Distance2) ^ Distance Coefficient
+
+```
+
+```{r}
+# Decision Tree
+
+library(rpart)
+set.seed(99)
+
+aTree <- rpart(Price ~., data = aTrain, method = "anova")
+summary(aTree)
+
+```
+
+```{r}
+#RMSE for Decision Tree Training set
+
+aTreeP1 <- predict(aTree, aTrain )
+RMSE(aTreeP1, aTrain$Price)
+```
+
+```{r}
+# done on test data
+
+aTreeP2 <- predict(aTree, aTest )
+RMSE(aTreeP2, aTest$Price)
+```
+
+```{r}
+# Using random forest
+
+library(randomForest)
+
+set.seed(99)
+
+aForestTry <- randomForest(Price~., data = aTrain)
+attributes(aForestTry) # gives a list of attributes that can go after $
+aForestTry$importance # gives importance of each variable
+
+```
+
+```{r}
+
+aForestTry$type # regression
+
+```
+
+```{r}
+plot(aForestTry, main = 'First Forest Attempt befor fine tuning') # graph on error as it reduces and becomes constant for number of trees
+
+```
+
+```{r}
+# histogram of the number of nodes per tree
+hist(treesize(aForestTry),
+     main = '# of Nodes per Tree',
+     col = 'gold')
+
+```
+
+```{r}
+# graphical display of ForestTry$importance
+varImpPlot(aForestTry, main = 'Variable Importance', col = 'darkorange') 
+```
+
+```{r}
+# Number of times a variable appeared in random forest, printed in relation to the variable column number
+varUsed(aForestTry)
+```
+
+```{r}
+# print out of ForestTry and results
+aForestTry
+```
+
+```{r}
+# Predictino for RMSE on Train data
+
+aPreTry <- predict(aForestTry, aTrain) # default
+(RMSE(aPreTry, aTrain$Price))       # default
+```
+
+```{r}
+# prediction RMSE for Test data
+
+aPreTest <- predict(aForestTry, aTest)  
+(RMSE(aPreTest, aTest$Price))
+```
+
+```{r}
+
+# attempting to tune the Random Forest, finding best mtry and oob error
+
+aTuneForest<- tuneRF(y = aTrain$Price, x = aTrain[,-1], 
+                    mtryStart = 3, #using default, same as above to start
+                    ntreeTry = 300, # on plot error seems to stabilize a 300
+                    stepFactor = 1,
+                    improve = 0.05,
+                    trace = T,
+                    plot = T,
+                    doBest = T)
+```
+
+```{r}
+
+aForest <- randomForest(Price ~., data = aTrain,
+                          ntree = 500,
+                           # default for regression
+                          importance = T)
+
+aForest
+
+```
+
+```{r}
+
+plot(aForest)
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+# getting RMSE for training data
+
+aForestP1 <- predict(aForest, aTrain)
+
+plot(aForestP1)
+
+```
+
+```{r}
+# RMSE for training data
+
+RMSE(aForestP1, aTrain$Price)
+
+```
+
+```{r}
+# plot for Test data
+
+aForestP2 <- predict(aForest, aTest)
+plot(aForestP2)
+
+```
+
+```{r}
+
+# RMSE for Test data
+RMSE(aForestP2, aTest$Price)
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+

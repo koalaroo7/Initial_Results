@@ -1,0 +1,7 @@
+"0","# remove categorical to get numeric only"
+"0","melExCorr <- melExtended %>%"
+"0","   select(- Type, - Month, - Year, - Region, - BuildYear)"
+"0","library(corrplot)"
+"2","corrplot 0.84 loaded
+"
+"0","corrplot(cor(melExCorr), method = 'number')"

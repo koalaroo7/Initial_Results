@@ -1,0 +1,2 @@
+"0","mxr1 <- log10(mxhouse$Rooms)"
+"0","hist(mxr1, main = 'Histogram of log10(Rooms)', xlab = 'log10 Rooms', col = 'orchid4') # not much of a difference"

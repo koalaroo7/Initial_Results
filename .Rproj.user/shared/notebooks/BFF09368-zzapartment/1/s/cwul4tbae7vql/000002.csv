@@ -1,0 +1,1 @@
+"0","plot(aLasso$finalModel, xvar = 'dev', label = T) # 8 variables explain 50%"

@@ -1,0 +1,4 @@
+"0","# getting a count of how many rows contain the same values"
+"0","melHouse %>%"
+"0","  select(Rooms, Bedroom2) %>%"
+"0","  count(Rooms == Bedroom2)"

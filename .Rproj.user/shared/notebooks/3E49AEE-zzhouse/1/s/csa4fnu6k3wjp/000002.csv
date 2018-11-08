@@ -1,0 +1,74 @@
+"0","# getting standard deviation for each variable"
+"0","melHouseSD <- melHouse %>%"
+"0","  summarise_all(funs(sd(., na.rm=TRUE)))"
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"2","Calling var(x) on a factor x is deprecated and will become an error.
+  Use something like 'all(duplicated(x)[-1L])' to test for a constant vector."
+"0","glimpse(melHouseSD) # getting a clean print out of the SD values"
+"1","Observations: 1
+"
+"1","Variables: 23
+"
+"1","$ Suburb        <dbl> 100.9935
+"
+"1","$ Address       <dbl> 9812.989
+"
+"1","$ Rooms         <dbl> 0.9699329
+"
+"1","$ Type          <dbl> 0.8174618
+"
+"1","$ Price         <dbl> 641467.1
+"
+"1","$ Method        <dbl> 1.988551
+"
+"1","$ SellerG       <dbl> 103.9511
+"
+"1","$ Date          <date> 1970-07-22
+"
+"1","$ Distance      <dbl> 6.788892
+"
+"1","$ Postcode      <dbl> 51.63254
+"
+"1","$ Bedroom2      <dbl> 0.9806897
+"
+"1","$ Bathroom      <dbl> 0.724212
+"
+"1","$ Car           <dbl> 1.010771
+"
+"1","$ Landsize      <dbl> 3398.842
+"
+"1","$ BuildingArea  <dbl> 401.2671
+"
+"1","$ YearBuilt     <dbl> 37.32818
+"
+"1","$ CouncilArea   <dbl> 9.936106
+"
+"1","$ Lat           <dbl> 0.0902789
+"
+"1","$ Long          <dbl> 0.1201688
+"
+"1","$ Region        <dbl> 2.051519
+"
+"1","$ PropertyCount <dbl> 4428.09
+"
+"1","$ Month         <dbl> 3.158799
+"
+"1","$ Year          <dbl> 0.6362919
+"

@@ -1,0 +1,5 @@
+"0","# YearBuilt 2019 does not exist yet, might be a presale, but will be removed"
+"0","# seeing how many homes claim to be built after 2018 & deleting anything greater than 2018"
+"0","melExtended %>%"
+"0","  select(YearBuilt) %>%"
+"0","  filter(YearBuilt > 2018)"

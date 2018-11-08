@@ -1,0 +1,2 @@
+"0","mxba <- log10(mxhouse$BuildingArea)"
+"0","hist(mxba, main = 'Histogram Log10(BuildingArea)', col = 'tomato') "

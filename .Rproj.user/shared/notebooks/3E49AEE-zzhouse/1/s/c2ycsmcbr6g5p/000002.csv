@@ -1,0 +1,2 @@
+"0","# Distance"
+"0","hist(mxhouse$Distance, main = 'Histogram of Distance', col = 'gray88') #skewed"

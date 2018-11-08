@@ -1,0 +1,7 @@
+"0","# done on test data"
+"0","mxTreeP2 <- predict(mxhTree, mxTest )"
+"0","(DtreeRMSE <-RMSE(mxTreeP2, mxTest$Price))"
+"1","[1]"
+"1"," 0.1211253"
+"1","
+"

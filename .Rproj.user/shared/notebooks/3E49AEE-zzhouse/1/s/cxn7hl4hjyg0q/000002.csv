@@ -1,0 +1,52 @@
+"0","# applying Log10 to variables in need for houses only preparing for regressions"
+"0","# loading packeages needed"
+"0","library(caret)"
+"2","Loading required package: lattice
+"
+"2","
+Attaching package: ‘caret’
+
+"
+"2","The following object is masked from ‘package:purrr’:
+
+    lift
+
+"
+"0","library(psych)"
+"2","
+Attaching package: ‘psych’
+
+"
+"2","The following objects are masked from ‘package:ggplot2’:
+
+    %+%, alpha
+
+"
+"0","library(glmnet)"
+"2","package ‘glmnet’ was built under R version 3.4.4"
+"2","Loading required package: Matrix
+"
+"2","
+Attaching package: ‘Matrix’
+
+"
+"2","The following object is masked from ‘package:tidyr’:
+
+    expand
+
+"
+"2","Loading required package: foreach
+"
+"2","
+Attaching package: ‘foreach’
+
+"
+"2","The following objects are masked from ‘package:purrr’:
+
+    accumulate, when
+
+"
+"2","Loaded glmnet 2.0-16
+
+"
+"0","library(mlbench)"

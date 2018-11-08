@@ -1,0 +1,2 @@
+"0","#correlation with log10 features"
+"0","pairs.panels(adata3, cex.cor = 2) # with log10 data, cex.cor =2 makes correlation #'s larger"

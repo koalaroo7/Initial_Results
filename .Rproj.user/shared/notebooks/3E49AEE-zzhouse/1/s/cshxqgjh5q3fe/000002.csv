@@ -1,0 +1,6 @@
+"0","# RMSE for Test data"
+"0","(ForestRMSE <-RMSE(mxhForestP2, mxTest$Price))"
+"1","[1]"
+"1"," 0.09062684"
+"1","
+"

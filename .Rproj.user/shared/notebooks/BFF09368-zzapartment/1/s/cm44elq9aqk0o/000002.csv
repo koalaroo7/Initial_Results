@@ -1,0 +1,7 @@
+"0","# Test data prediction RMSE"
+"0","aP2 <- predict(aRidge, aTest)"
+"0","sqrt(mean((aTest$Price - aP2)^2))"
+"1","[1]"
+"1"," 0.09005884"
+"1","
+"

@@ -1,0 +1,1079 @@
+---
+title: "MelbourseHouseData"
+output: rmarkdown::github_document
+ 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+
+melHouseStart <- read.csv("~/Desktop/Melbourne data project/melbourne-housing-market/Melbourne_housing_FULL.csv")
+
+
+library(tidyverse)
+
+#----------------
+
+melHouseStart <- as.tibble(melHouseStart)
+
+# check the structure
+str(melHouseStart)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+
+# Fix data types
+# changing Distance to numeric, Propertycount to numeric, Date to date /d/m/y date format
+
+
+melHouseStart$Distance <- as.numeric(as.character(melHouseStart$Distance))
+
+melHouseStart$Propertycount <- as.numeric(as.character(melHouseStart$Propertycount))
+
+melHouseStart$Date <- as.Date(melHouseStart$Date, "%d/%m/%Y")
+
+#confirming the changes
+glimpse(melHouseStart)
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+# Adding month and year to the columns & correcting spelling on 
+
+melHouse <- melHouseStart %>%
+  mutate(Month = as.factor(strftime(Date, "%m")),
+         Year = as.factor(strftime(Date, "%y"))) %>%
+  rename("Lat" = "Lattitude", "Long" = "Longtitude", "Region" = "Regionname", "PropertyCount" = "Propertycount")
+
+glimpse(melHouse) # verifying that the columns were created and renamed
+
+```
+
+```{r}
+# Finding the descriptive statistics
+
+summary(melHouse) # descriptive statistics with out standard deviation
+
+```
+
+```{r}
+
+# getting standard deviation for each variable
+
+melHouseSD <- melHouse %>%
+  summarise_all(funs(sd(., na.rm=TRUE)))
+
+glimpse(melHouseSD) # getting a clean print out of the SD values
+
+```
+
+```{r}
+# checking NA values
+
+library(Amelia)
+missmap(melHouse) # visualise missing values
+
+```
+
+```{r}
+
+# Actual NA values followed by percentage of NA values
+
+colSums(is.na(melHouse))
+
+# Finding the percentage of NA values per variable
+
+colMeans(is.na(melHouse))*100
+
+```
+
+```{r}
+
+# inspecting rooms vs bedroom2 as Bedroom2 was scraped from a different source
+
+melHouse %>%
+  select(Rooms, Bedroom2)
+
+# inspecting the rows that are not equal to each other
+melHouse %>%
+  select(Rooms, Bedroom2) %>%
+  filter(Rooms != Bedroom2)
+
+# getting a count of how many rows contain the same values
+melHouse %>%
+  select(Rooms, Bedroom2) %>%
+  count(Rooms == Bedroom2)
+
+# checking the correlation
+cor.test(melHouse$Rooms, melHouse$Bedroom2)
+
+# Drop Bedroom2 due to multicolinearity issues
+
+```
+
+```{r}
+
+(melExtended <- select(melHouse, - SellerG, - Lat, - Long, 
+                           - Method, - Suburb, -Postcode, -Address, 
+                           - PropertyCount, - CouncilArea, - Bedroom2, - Date))
+
+```
+
+```{r}
+
+# Getting rid of any NA values
+
+melExtended <- na.omit(melExtended)
+str(melExtended)
+summary(melExtended)
+
+```
+
+```{r}
+
+# YearBuilt 2019 does not exist yet, might be a presale, but will be removed
+
+# seeing how many homes claim to be built after 2018 & deleting anything greater than 2018
+
+melExtended %>%
+  select(YearBuilt) %>%
+  filter(YearBuilt > 2018)
+
+melExtended <- melExtended %>%
+  filter(YearBuilt <= 2018)
+
+summary(melExtended$YearBuilt) # veridying max is no greater than 2018
+
+```
+
+```{r}
+
+# checking for homes built before 1800
+
+melExtended %>%
+  select(YearBuilt) %>%
+  filter(YearBuilt < 1800)
+
+# unsure of anything built in 1196, therefore it is being removed
+
+melExtended <- melExtended %>%
+  filter(YearBuilt > 1800)
+
+summary(melExtended$YearBuilt)
+
+```
+```{r}
+# Turning YearBuilt into a range of factors
+# 1 = 1800 -1899
+# 2 = 1900 - 1949
+# 3 = 1950 - 1999
+# 4 = 1999 - 2018
+
+
+# adding column BuildYear for range of years built
+melExtended$BuildYear  = 0
+
+melExtended$BuildYear[melExtended$YearBuilt <= 1899] = 1
+melExtended$BuildYear[melExtended$YearBuilt >= 1900 & melExtended$YearBuilt<= 1949] = 2
+melExtended$BuildYear[melExtended$YearBuilt >= 1950 & melExtended$YearBuilt<= 1999] = 3
+melExtended$BuildYear[melExtended$YearBuilt >= 2000 & melExtended$YearBuilt<= 2018] = 4
+
+glimpse(melExtended) #verifying BuildYear is created
+```
+
+```{r}
+
+# turn BuildYear into a factor
+melExtended$BuildYear <- as.factor(melExtended$BuildYear)
+
+# drop year built
+
+melExtended <- melExtended %>%
+  select(- YearBuilt)
+
+glimpse(melExtended)
+
+```
+
+```{r}
+
+# Eliminate any home where it is claimed it has more bathrooms than rooms
+
+melExtended <- melExtended %>%
+    filter(Bathroom < Rooms)
+
+# Elinimate any home claiming to have 0 bathrooms or more and 5 (Reason to believe more than 5 is a building of units sold as a whole in most cases)
+melExtended <- melExtended %>%
+  filter(Bathroom > 0 & Bathroom <= 5)
+
+# Eliminate any home with 0 Landsize
+melExtended<- melExtended %>%
+    filter(Landsize > 0)
+
+# using this link https://www.smh.com.au/business/melbournes-apartment-sizes-face-more-scrutiny-20150414-1mkuj4.html
+# setting a lowest value of 40, this 10 square meters lower than 2002 requirements
+
+melExtended <- melExtended %>%
+    filter(Landsize >= 40)
+
+
+# eliminating any lot over 1500
+
+melExtended <- melExtended %>%
+  filter(Landsize < 1500)
+
+melExtended <- melExtended %>%
+  filter(BuildingArea >= 40) # same as above with relation to landsize
+
+summary(melExtended)
+
+
+```
+
+```{r}
+
+# Eliminate any property where building area is > land size
+
+melExtended <- melExtended %>%
+  filter(BuildingArea < Landsize)
+
+summary(melExtended)
+
+```
+
+```{r}
+
+# remove categorical to get numeric only
+
+melExCorr <- melExtended %>%
+   select(- Type, - Month, - Year, - Region, - BuildYear)
+
+library(corrplot)
+corrplot(cor(melExCorr), method = 'number')
+
+# Nothing as of now will be dropped as there is no correlation above 80
+
+```
+
+```{r}
+
+#separate into 4 groups, all, house, unit, townhouse (h/u/t) while dropping 'Type'
+
+
+mxapartment <- melExtended %>%
+   filter(Type == 'u') %>%
+   select(- Type)
+
+mxhouse <- melExtended %>%
+    filter(Type == 'h') %>%
+    select(- Type)
+
+mxtownhouse <- melExtended %>%
+    filter(Type == 't') %>%
+    select( - Type)
+
+# the forth group will remain using melExtended
+
+```
+
+```{r}
+
+# checking strength of variables & models adjusted R-squared prior to inspecting and normalizing variables
+
+# note these models are useless if they do not meet the assumptions
+
+set.seed(99)
+
+(summary(lm(Price ~., data = mxapartment))) 
+(summary(lm(Price ~., data = mxtownhouse))) 
+(summary(lm(Price ~., data = mxhouse))) 
+
+```
+
+```{r}
+
+# applying Log10 to variables in need for houses only preparing for regressions
+# loading packeages needed
+
+library(caret)
+library(psych)
+library(glmnet)
+library(mlbench)
+
+```
+
+```{r}
+
+# inpspecting Price variable and applying log10 transformation
+
+# price
+hist(mxhouse$Price, main = 'Histogram of Price', col = 'springgreen2')
+
+```
+
+```{r}
+#testing for normalit distribution using Anderson-Darling test, kurtosis, skewness
+# using 0.05 for shapiro, and a range of -2,2 for kurtosis and skewness
+
+library(e1071)
+library(nortest)
+
+#Anderson Darling Test
+# Ho: Data follows the normal distribution
+# Ha: Data does not follow the normal distribution
+
+ad.test(mxhouse$Price)
+
+kurtosis(mxhouse$Price) # far exceeds the limits
+
+skewness(mxhouse$Price) # exceeds limits
+
+qqnorm(mxhouse$Price)
+qqline(mxhouse$Price, col = 'red')
+
+
+```
+
+```{r}
+plot(mxhouse$Price)
+
+```
+
+```{r}
+
+# price
+
+mxp1 <- log10(mxhouse$Price)
+hist(mxp1, main = 'Histogram of Log10(Price)', xlab = 'Log10(Price)', col = 'springgreen4')
+
+boxplot(mxp1, main = 'Boxplot of Log10(Price)')
+
+```
+
+```{r}
+ad.test(mxp1) # might be getting thrown off
+
+kurtosis(mxp1) # within range
+
+skewness(mxp1) # within range
+
+qqnorm(mxp1)
+qqline(mxp1, col = 'red')
+
+```
+
+```{r}
+
+# price
+plot(mxp1)
+
+```
+
+```{r}
+
+# Rooms
+summary(mxhouse$Rooms) #min is 2 no need to add 1 for log10 if needed
+
+boxplot(mxhouse$Rooms, main = 'Boxplot of Rooms')
+
+
+ad.test(mxhouse$Rooms)
+
+kurtosis(mxhouse$Rooms) # 2.6, just over range
+
+skewness(mxhouse$Rooms) # within range
+
+# mean and median are close, should be okay
+
+hist(mxhouse$Rooms, main = 'Histogram of Rooms', col = 'hotpink') 
+
+qqnorm(mxhouse$Rooms)
+qqline(mxhouse$Rooms, col = 'hotpink')
+
+
+```
+
+```{r}
+mxr1 <- log10(mxhouse$Rooms)
+hist(mxr1, main = 'Histogram of log10(Rooms)', xlab = 'log10 Rooms', col = 'orchid4') # not much of a difference
+
+boxplot(mxr1, main = 'Boxplot of Log10(Rooms)')
+
+ad.test(mxr1)
+
+kurtosis(mxr1) # fine, comes within range
+
+skewness(mxr1) # fine
+
+# will use original for now
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+# Distance
+
+hist(mxhouse$Distance, main = 'Histogram of Distance', col = 'gray88') #skewed
+
+boxplot(mxhouse$Distance, main = 'Boxplot of Distance')
+
+ad.test(mxhouse$Distance)
+
+kurtosis(mxhouse$Distance) #  exceeds the limits
+
+skewness(mxhouse$Distance) # near limits
+
+qqnorm(mxhouse$Distance)
+qqline(mxhouse$Distance, col = 'gold')
+
+```
+
+```{r}
+# inspecting the summary of just the houses
+summary(mxhouse)
+```
+
+```{r}
+
+mxd1 <- mxhouse$Distance # adding 1 so the log10 has no 0 values
+mxd2 <- log10(mxd1)
+hist(mxd2, main = 'Histogram of Log10(Distance)', col = 'gray56')
+
+boxplot(mxd2, main = 'Boxplot of log10(Distance)')
+
+ad.test(mxd2)
+
+kurtosis(mxd2) # within range
+
+skewness(mxd2) # within range
+
+qqnorm(mxd2) # improvement
+qqline(mxd2, col = 'gold')
+
+
+
+```
+
+```{r}
+summary(mxd2) # ensuring there are no 0 values
+```
+
+```{r}
+
+```
+
+```{r}
+plot(mxd2)
+```
+
+```{r}
+# Bathrooms
+
+hist(mxhouse$Bathroom, main = 'Histogram of Bathrooms', col = 'cornsilk2')
+
+boxplot(mxhouse$Bathroom, main = 'Boxplot of Bathrooms')
+
+ad.test(mxhouse$Bathroom)
+
+kurtosis(mxhouse$Bathroom) # within range
+
+skewness(mxhouse$Bathroom) # within range
+
+qqnorm(mxhouse$Bathroom)
+qqline(mxhouse$Bathroom, col = 'sandybrown')
+
+```
+
+```{r}
+
+```
+
+```{r}
+# Parking spots
+hist(mxhouse$Car, main = 'Histogram for Parking Spaces', col = 'cyan') 
+
+boxplot(mxhouse$Car, main = 'Boxplot for Parking Spaces')
+
+ad.test(mxhouse$Car)
+
+kurtosis(mxhouse$Car) # far exceeds the limits
+
+skewness(mxhouse$Car) # within range
+
+qqnorm(mxhouse$Car)
+qqline(mxhouse$Car, col = 'blue' )
+
+
+```
+
+```{r}
+mxc1 <- mxhouse$Car + 2
+mxc2 <- log10(mxc1)
+hist(mxc2, main = 'Histogram of Log10(Car)', xlab = 'Log10(Car)', col = 'lightsteelblue1') 
+
+boxplot(mxc2, main = 'Parking Spaces Boxplot for Log10(Car)' )
+
+
+ad.test(mxc2)
+
+kurtosis(mxc2) # within range
+
+skewness(mxc2) # withing range
+
+qqnorm(mxc2)
+qqline(mxc2, col = 'blue')
+
+# will use original for now
+
+```
+
+```{r}
+# LandSize
+
+hist(mxhouse$Landsize, main = 'Histogram of Land Size', col = 'darkolivegreen3') 
+
+boxplot(mxhouse$Landsize, main = 'Boxplot of Land Size')
+
+ad.test(mxhouse$Landsize)
+
+kurtosis(mxhouse$Landsize) # within range
+
+skewness(mxhouse$Landsize) # within range
+
+qqnorm(mxhouse$Landsize)
+qqline(mxhouse$Landsize, col = 'green')
+
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+#builing Area
+hist(mxhouse$BuildingArea, main = 'Histogram of Building Area', col = 'firebrick2')
+
+boxplot(mxhouse$BuildingArea, main = 'Boxplot of Building Area')
+
+ad.test(mxhouse$BuildingArea)
+
+kurtosis(mxhouse$BuildingArea) # highly out of range
+
+skewness(mxhouse$BuildingArea) # just within range
+
+qqnorm(mxhouse$BuildingArea)
+qqline(mxhouse$BuildingArea, col = 'orangered')
+
+
+```
+
+```{r}
+mxba <- log10(mxhouse$BuildingArea)
+hist(mxba, main = 'Histogram Log10(BuildingArea)', col = 'tomato') 
+
+boxplot(mxba, main = 'Boxplot Log10(BuildingArea)')
+
+ad.test(mxba)
+
+kurtosis(mxba) # within range
+
+skewness(mxba) # within range
+
+qqnorm(mxba)
+qqline(mxba, col = 'orangered')
+
+
+
+# will use this version for now
+
+```
+
+```{r}
+#correlation, scatterplots, histograms
+pairs.panels(mxhouse) # prior to setting anything to log10
+```
+
+```{r}
+# pretesting simple regression with log10 variables, just to get an idea of the best fitting model
+# before separating into folds for training and testing
+
+set.seed(99)
+# only price is logged
+
+mxtrial <- lm(log10(Price) ~., data = mxhouse)
+summary(mxtrial) 
+```
+
+```{r}
+
+# using a log10 on Price and Distance
+
+mxhdata <- mxhouse
+mxhdata$Distance <- mxhouse$Distance 
+mxhdata$Distance <- log10(mxhdata$Distance)
+
+mxtrial2 <- lm(log10(Price) ~., data = mxhdata)
+summary(mxtrial2) # improves on above model
+```
+
+```{r}
+mxhdata2 <- mxhdata
+mxhdata2$BuildingArea <- log10(mxhdata2$BuildingArea)
+
+mxtrial2 <- lm(log10(Price)~., data = mxhdata2) #changing mxtrial2 from above
+summary(mxtrial2)
+
+library(lmtest)
+bptest(mxtrial2) #very small
+```
+
+```{r}
+plot(mxtrial2)
+
+# Residuals vs Fitted
+# does not seem to bad related to heteroscedasticity, contrary to the BPtest p-value
+# will need to follow up on this
+```
+
+```{r}
+# testing selection methods
+
+# backwards selection
+summary(step(mxtrial2, direction = 'backward', trace = 0)) 
+
+```
+
+```{r}
+# forwards selection
+summary(step(mxtrial2, direction = 'forward', trace = 0)) 
+```
+
+```{r}
+# stepwise selection (both)
+summary(step(mxtrial2, direction = 'both', trace = 0))
+
+# forward/backwards/stepwise all produce the same results
+```
+
+```{r}
+
+# Log10 of Price into data prior to setting training and testing sets
+
+# log10 to Price
+
+mxhdata2$Price <- log10(mxhdata2$Price)
+glimpse(mxhdata2) # verifying it was logged
+
+```
+
+```{r}
+#correlation with log10 features
+
+pairs.panels(mxhdata2, cex.cor = 2) # with log10 data, cex.cor =2 makes correlation #'s larger
+
+```
+
+```{r}
+# setting up training and test sets
+
+set.seed(99)
+
+# creating the index for the split to occur
+mxIndex <- sample(2, nrow(mxhdata2), replace = T, prob = c(0.7, 0.3))
+
+
+mxTrain <- mxhdata2[mxIndex == 1, ] # create training set, 70%
+mxTest <- mxhdata2[mxIndex == 2, ] # create test set, 30%
+
+library(caret)
+
+# creating cross validation, 10 fold, ran 5 times
+# control parameters
+
+mxControls <- trainControl(method = 'repeatedcv', number = 10,  repeats = 5, verboseIter = F)
+```
+
+```{r}
+
+# Linear Regression
+
+mxLinTrain <- train(Price ~., mxTrain, method = 'lm', trControl = mxControls)
+mxLinTrain$results
+summary(mxLinTrain)
+
+```
+
+```{r}
+plot(mxLinTrain$finalModel)
+
+```
+
+```{r}
+set.seed(99)
+
+
+library(glmnet) 
+# Setting up Ridge regression
+
+mxhRidge <- train(Price ~., 
+                  mxTrain, 
+                  method = 'glmnet', 
+                  tuneGrid = expand.grid(alpha = 0,
+                                         lambda = seq(0.0001, 1, length = 5)),
+                  trControl = mxControls)
+
+```
+
+```{r}
+plot(mxhRidge) # Showing RMSE responding to increase in Lambda values
+```
+
+```{r}
+print(mxhRidge)
+```
+
+```{r}
+# plot showing importance of variables for Ridge Regression
+
+plot(varImp(mxhRidge, scale = F)) 
+```
+
+```{r}
+
+# Lasso Regression
+
+set.seed(99)
+
+mxhLasso <- train(Price ~., 
+                         mxTrain, 
+                         method = 'glmnet', 
+                         tuneGrid = expand.grid(alpha = 1,
+                                                lambda = seq(0.0001, 1, length = 5)),
+                         trControl = mxControls)
+```
+
+```{r}
+plot(mxhLasso) # lowest lambda is best for lasso as well
+```
+
+```{r}
+plot(varImp(mxhLasso, scale = F)) # importance level of variables for Lasso
+```
+
+```{r}
+plot(mxhLasso$finalModel, xvar = 'dev', label = T) # 3 variables explain 60%
+```
+
+```{r}
+# Elastic Net
+
+set.seed(99)
+
+mxhElastic <- train(Price ~., 
+                         mxTrain, 
+                         method = 'glmnet', 
+                         tuneGrid = expand.grid(alpha = seq(0, 1, length =10),
+                                                lambda = seq(0.0001, 1, length = 5)),
+                         trControl = mxControls)
+
+```
+
+```{r}
+# best fit for Lamba and Alpha graph
+
+plot(mxhElastic) #lambda is coloured lines, alpha along bottom, run again with length 3 for alpha for clarity
+
+```
+
+```{r}
+mxhElastic$bestTune #finding optimal lambda & alpha values in a separate way
+
+```
+
+```{r}
+# Comparing models - MAE, RMSE, Rsquared
+
+mxhModelList <- list(Linear = mxLinTrain, Ridge = mxhRidge, Lasso = mxhLasso, Elastic = mxhElastic)
+mxhResample <- resamples(mxhModelList)
+summary(mxhResample)
+
+
+```
+
+```{r}
+# Predictions with Training & Test data
+# all models performed closely however the Lassoregression has lowest mean RMSE
+# So Lasso will be used in the final, as RMSE is the main measure of this study
+
+
+# training data prediction & RMSE
+mxhP1 <- predict(mxhRidge, mxTrain)
+sqrt(mean((mxTrain$Price - mxhP1)^2)) # RMSE - lower the better
+
+
+mxLassoP1 <- predict(mxhLasso, mxTrain)
+sqrt(mean((mxTrain$Price - mxLassoP1)^2)) # RMSE - lower the better
+
+
+mxEP1 <- predict(mxhElastic, mxTrain)
+sqrt(mean((mxTrain$Price - mxEP1)^2)) # RMSE - lower the better
+```
+
+```{r}
+# Test data prediction RMSE
+mxhP2 <- predict(mxhRidge, mxTest)
+(RidgeRMSE <- sqrt(mean((mxTest$Price - mxhP2)^2)))
+
+
+mxLassoP2 <- predict(mxhLasso, mxTest)
+(LassoRMSE <- sqrt(mean((mxTest$Price - mxLassoP2)^2))) # RMSE - lower the better
+
+
+mxEP2 <- predict(mxhElastic, mxTest)
+(ElasticRMSE <- sqrt(mean((mxTest$Price - mxEP2)^2)))
+
+# The test model RMSE remains very close to the Training model
+
+```
+
+```{r}
+# comparing accuracy
+
+#comparing actual vs predicted values 
+mxhCompareRidge <- cbind(actual = mxTest$Price, mxhP2) # combining actual and predicted
+
+
+mxhCompareLasso <- cbind(actual = mxTest$Price, mxLassoP2)
+
+mxhCompareElastic <- cbind(actual = mxTest$Price, mxEP2)
+
+head(mxhCompareLasso)
+
+```
+
+```{r}
+# calculating accuracy
+mean (apply(mxhCompareRidge, 1, min)/apply(mxhCompareRidge, 1, max))
+
+mean (apply(mxhCompareLasso, 1, min)/apply(mxhCompareLasso, 1, max))
+
+mean (apply(mxhCompareElastic, 1, min)/apply(mxhCompareElastic, 1, max))
+
+# The models are very accurate
+```
+
+```{r}
+
+# For the Log10(Distance variable) the percent increase is computed as follows
+
+# (Distance1/ Distance2) ^ Distance Coefficient
+
+```
+
+```{r}
+# Decision Tree
+
+library(rpart)
+set.seed(99)
+
+mxhTree <- rpart(Price ~., data = mxTrain, method = "anova")
+summary(mxhTree)
+
+```
+
+```{r}
+#RMSE for Decision Tree Training set
+
+mxTreeP1 <- predict(mxhTree, mxTrain )
+RMSE(mxTreeP1, mxTrain$Price)
+```
+
+```{r}
+# done on test data
+
+mxTreeP2 <- predict(mxhTree, mxTest )
+(DtreeRMSE <-RMSE(mxTreeP2, mxTest$Price))
+```
+
+```{r}
+# Using random forest
+
+library(randomForest)
+
+set.seed(99)
+
+ForestTry <- randomForest(Price~., data = mxTrain)
+attributes(ForestTry) # gives a list of attributes that can go after $
+ForestTry$importance # gives importance of each variable
+
+```
+
+```{r}
+
+ForestTry$type # regression
+
+```
+
+```{r}
+plot(ForestTry) # graph on error as it reduces and becomes constant for number of trees
+
+```
+
+```{r}
+# histogram of the number of nodes per tree
+hist(treesize(ForestTry),
+     main = '# of Nodes per Tree',
+     col = 'coral')
+# roughly 100 trees with 1390 nodes
+```
+
+```{r}
+# graphical display of ForestTry$importance
+varImpPlot(ForestTry, main = 'Variable Importance', col = 'darkmagenta') 
+```
+
+```{r}
+# Number of times a variable appeared in random forest, printed in relation to the variable column number
+varUsed(ForestTry)
+```
+
+```{r}
+# print out of ForestTry and results
+ForestTry
+```
+
+```{r}
+# Predictino for RMSE on Train data
+
+PreTry <- predict(ForestTry, mxTrain) # default
+(RMSE(PreTry, mxTrain$Price))       # default
+```
+
+```{r}
+# prediction RMSE for Test data
+
+PreTest <- predict(ForestTry, mxTest)  
+(RMSE(PreTest, mxTest$Price))
+```
+
+```{r}
+
+# attempting to tune the Random Forest, finding best mtry and oob error
+
+tuneForest<- tuneRF(y = mxTrain$Price, x = mxTrain[,-1], 
+                    mtryStart = 3, #using default, same as above to start
+                    ntreeTry = 300, # on plot error seems to stabilize a 300
+                    stepFactor = 1,
+                    improve = 0.05,
+                    trace = T,
+                    plot = T,
+                    doBest = T)
+```
+
+```{r}
+
+MxhForest <- randomForest(Price ~., data = mxTrain,
+                          ntree = 500,
+                           # default for regression
+                          importance = T)
+
+MxhForest
+
+```
+
+```{r}
+
+plot(MxhForest)
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+# getting RMSE for training data
+
+mxhForestP1 <- predict(MxhForest, mxTrain)
+
+plot(mxhForestP1)
+
+```
+
+```{r}
+# RMSE for training data
+
+RMSE(mxhForestP1, mxTrain$Price)
+
+```
+
+```{r}
+# plot for Test data
+
+mxhForestP2 <- predict(MxhForest, mxTest)
+plot(mxhForestP2)
+
+```
+
+```{r}
+
+# RMSE for Test data
+(ForestRMSE <-RMSE(mxhForestP2, mxTest$Price))
+
+```
+
+```{r}
+
+#Comparison of RMSE by models
+
+
+RidgeRMSE
+
+LassoRMSE
+
+ElasticRMSE
+
+DtreeRMSE
+
+ForestRMSE # the best RMSE and preferred model with the above normality issues for the parametric regressions
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+

@@ -1,0 +1,2 @@
+"0","# LandSize"
+"0","hist(mxhouse$Landsize, main = 'Histogram of Land Size', col = 'darkolivegreen3') "

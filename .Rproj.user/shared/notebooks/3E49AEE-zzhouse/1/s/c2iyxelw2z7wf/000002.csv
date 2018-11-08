@@ -1,0 +1,7 @@
+"0","#RMSE for Decision Tree Training set"
+"0","mxTreeP1 <- predict(mxhTree, mxTrain )"
+"0","RMSE(mxTreeP1, mxTrain$Price)"
+"1","[1]"
+"1"," 0.1169521"
+"1","
+"

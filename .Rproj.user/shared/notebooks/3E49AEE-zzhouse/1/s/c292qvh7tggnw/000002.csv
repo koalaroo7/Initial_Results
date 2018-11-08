@@ -1,0 +1,3 @@
+"0","(melExtended <- select(melHouse, - SellerG, - Lat, - Long, "
+"0","                           - Method, - Suburb, -Postcode, -Address, "
+"0","                           - PropertyCount, - CouncilArea, - Bedroom2, - Date))"

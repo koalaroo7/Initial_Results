@@ -1,0 +1,2 @@
+"0","#builing Area"
+"0","hist(mxhouse$BuildingArea, main = 'Histogram of Building Area', col = 'firebrick2')"

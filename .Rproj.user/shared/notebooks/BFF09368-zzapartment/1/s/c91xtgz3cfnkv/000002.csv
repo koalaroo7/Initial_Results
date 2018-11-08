@@ -1,0 +1,2 @@
+"0","aba <- log10(mxapartment$BuildingArea)"
+"0","hist(aba, main = 'Histogram Log10(BuildingArea)') # looks better"

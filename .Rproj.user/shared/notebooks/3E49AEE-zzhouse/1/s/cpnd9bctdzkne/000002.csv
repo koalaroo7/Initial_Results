@@ -1,0 +1,3 @@
+"0","# inpspecting Price variable and applying log10 transformation"
+"0","# price"
+"0","hist(mxhouse$Price, main = 'Histogram of Price', col = 'springgreen2')"

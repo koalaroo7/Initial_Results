@@ -1,0 +1,2 @@
+"0","# graphical display of ForestTry$importance"
+"0","varImpPlot(aForestTry, main = 'Variable Importance', col = 'darkorange') "

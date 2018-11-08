@@ -1,0 +1,3 @@
+"0","# getting RMSE for training data"
+"0","mxhForestP1 <- predict(MxhForest, mxTrain)"
+"0","plot(mxhForestP1)"

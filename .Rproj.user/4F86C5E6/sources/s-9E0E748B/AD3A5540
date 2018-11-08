@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1541542318895.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1016751530",
+    "id" : "AD3A5540",
+    "lastKnownWriteTime" : 1541542354,
+    "last_content_update" : 1541543058100,
+    "path" : "~/Desktop/Melbourne data project/zzz/zzapartment.Rmd",
+    "project_path" : "zzapartment.Rmd",
+    "properties" : {
+        "cursorPosition" : "8,0",
+        "last_setup_crc32" : "9E0E748Bbb338d19",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

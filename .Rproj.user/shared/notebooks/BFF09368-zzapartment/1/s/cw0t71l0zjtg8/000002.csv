@@ -1,0 +1,7 @@
+"0","# calculating accuracy"
+"0","mean (apply(aCompare, 1, min)/apply(aCompare, 1, max))"
+"1","[1]"
+"1"," 0.9883365"
+"1","
+"
+"0","# The model is very accurate"

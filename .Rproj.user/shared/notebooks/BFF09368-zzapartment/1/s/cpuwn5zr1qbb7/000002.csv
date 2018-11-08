@@ -1,0 +1,2 @@
+"0","# LandSize"
+"0","hist(mxapartment$Landsize) #skewed"

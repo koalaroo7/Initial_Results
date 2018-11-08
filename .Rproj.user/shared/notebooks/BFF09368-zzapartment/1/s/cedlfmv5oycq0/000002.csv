@@ -1,0 +1,7 @@
+"0","# done on test data"
+"0","aTreeP2 <- predict(aTree, aTest )"
+"0","RMSE(aTreeP2, aTest$Price)"
+"1","[1]"
+"1"," 0.09636341"
+"1","
+"

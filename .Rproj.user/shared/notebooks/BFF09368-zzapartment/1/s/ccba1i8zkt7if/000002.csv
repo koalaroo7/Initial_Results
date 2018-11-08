@@ -1,0 +1,4 @@
+"0","# histogram of the number of nodes per tree"
+"0","hist(treesize(aForestTry),"
+"0","     main = '# of Nodes per Tree',"
+"0","     col = 'gold')"

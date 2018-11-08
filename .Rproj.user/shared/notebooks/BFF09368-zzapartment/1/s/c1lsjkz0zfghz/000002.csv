@@ -1,0 +1,1 @@
+"0","plot(aForestTry, main = 'First Forest Attempt befor fine tuning') # graph on error as it reduces and becomes constant for number of trees"

@@ -1,0 +1,4 @@
+"0","# checking for homes built before 1800"
+"0","melExtended %>%"
+"0","  select(YearBuilt) %>%"
+"0","  filter(YearBuilt < 1800)"

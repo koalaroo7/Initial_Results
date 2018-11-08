@@ -1,0 +1,3 @@
+"0","plot(aLinTrain$finalModel)"
+"2","not plotting observations with leverage one:
+  246, 280, 309"

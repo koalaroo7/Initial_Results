@@ -1,0 +1,2 @@
+"0","aland <- log10(mxapartment$Landsize)"
+"0","hist(aland) # still bimodal? need to use non-parametric decision tree and random forest for results, Gaussien model cannot be fitted."

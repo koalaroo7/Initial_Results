@@ -1,0 +1,3 @@
+"0","ad1 <- mxapartment$Distance + 2 # adding 2 so the log10 has no 0 values"
+"0","ad2 <- log10(ad1)"
+"0","hist(ad2, main = 'Histogram of Distance + 2, Log10(Distance)', col = 'lightblue')"

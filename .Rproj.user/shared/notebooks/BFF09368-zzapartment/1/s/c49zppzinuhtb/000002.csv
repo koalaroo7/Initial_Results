@@ -1,0 +1,7 @@
+"0","#RMSE for Decision Tree Training set"
+"0","aTreeP1 <- predict(aTree, aTrain )"
+"0","RMSE(aTreeP1, aTrain$Price)"
+"1","[1]"
+"1"," 0.07125117"
+"1","
+"

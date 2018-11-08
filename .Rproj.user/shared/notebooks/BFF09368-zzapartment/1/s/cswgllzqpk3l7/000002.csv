@@ -1,0 +1,6 @@
+"0","# applying Log10 to variables in need for houses only preparing for regressions"
+"0","# loading packeages needed"
+"0","library(caret)"
+"0","library(psych)"
+"0","library(glmnet)"
+"0","library(mlbench)"

@@ -1,0 +1,4 @@
+"0","# inspecting the rows that are not equal to each other"
+"0","melHouse %>%"
+"0","  select(Rooms, Bedroom2) %>%"
+"0","  filter(Rooms != Bedroom2)"
