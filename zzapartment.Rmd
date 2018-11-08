@@ -7,11 +7,584 @@ output: rmarkdown::github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+melHouseStart <- read.csv("~/Desktop/Melbourne data project/melbourne-housing-market/Melbourne_housing_FULL.csv")
+
+
+library(tidyverse)
+
+#----------------
+
+melHouseStart <- as.tibble(melHouseStart)
+
+# check the structure
+str(melHouseStart)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+
+# Fix data types
+# changing Distance to numeric, Propertycount to numeric, Date to date /d/m/y date format
+
+
+melHouseStart$Distance <- as.numeric(as.character(melHouseStart$Distance))
+
+melHouseStart$Propertycount <- as.numeric(as.character(melHouseStart$Propertycount))
+
+melHouseStart$Date <- as.Date(melHouseStart$Date, "%d/%m/%Y")
+
+#confirming the changes
+glimpse(melHouseStart)
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+# Adding month and year to the columns & correcting spelling on 
+
+melHouse <- melHouseStart %>%
+  mutate(Month = as.factor(strftime(Date, "%m")),
+         Year = as.factor(strftime(Date, "%y"))) %>%
+  rename("Lat" = "Lattitude", "Long" = "Longtitude", "Region" = "Regionname", "PropertyCount" = "Propertycount")
+
+glimpse(melHouse) # verifying that the columns were created and renamed
+
+```
+
+```{r}
+# Finding the descriptive statistics
+
+summary(melHouse) # descriptive statistics with out standard deviation
+
+```
+
+```{r}
+
+# getting standard deviation for each variable
+
+melHouseSD <- melHouse %>%
+  summarise_all(funs(sd(., na.rm=TRUE)))
+
+glimpse(melHouseSD) # getting a clean print out of the SD values
+
+```
+
+```{r}
+# checking NA values
+
+library(Amelia)
+missmap(melHouse) # visualise missing values
+
+```
+
+```{r}
+
+# Actual NA values followed by percentage of NA values
+
+colSums(is.na(melHouse))
+
+# Finding the percentage of NA values per variable
+
+colMeans(is.na(melHouse))*100
+
+```
+
+```{r}
+
+# inspecting rooms vs bedroom2 as Bedroom2 was scraped from a different source
+
+melHouse %>%
+  select(Rooms, Bedroom2)
+
+# inspecting the rows that are not equal to each other
+melHouse %>%
+  select(Rooms, Bedroom2) %>%
+  filter(Rooms != Bedroom2)
+
+# getting a count of how many rows contain the same values
+melHouse %>%
+  select(Rooms, Bedroom2) %>%
+  count(Rooms == Bedroom2)
+
+# checking the correlation
+cor.test(melHouse$Rooms, melHouse$Bedroom2)
+
+# Drop Bedroom2 due to multicolinearity issues
+
+```
+
+```{r}
+
+(melExtended <- select(melHouse, - SellerG, - Lat, - Long, 
+                           - Method, - Suburb, -Postcode, -Address, 
+                           - PropertyCount, - CouncilArea, - Bedroom2, - Date))
+
+```
+
+```{r}
+
+# Getting rid of any NA values
+
+melExtended <- na.omit(melExtended)
+str(melExtended)
+summary(melExtended)
+
+```
+
+```{r}
+
+# YearBuilt 2019 does not exist yet, might be a presale, but will be removed
+
+# seeing how many homes claim to be built after 2018 & deleting anything greater than 2018
+
+melExtended %>%
+  select(YearBuilt) %>%
+  filter(YearBuilt > 2018)
+
+melExtended <- melExtended %>%
+  filter(YearBuilt <= 2018)
+
+summary(melExtended$YearBuilt) # veridying max is no greater than 2018
+
+```
+
+```{r}
+
+# checking for homes built before 1800
+
+melExtended %>%
+  select(YearBuilt) %>%
+  filter(YearBuilt < 1800)
+
+# unsure of anything built in 1196, therefore it is being removed
+
+melExtended <- melExtended %>%
+  filter(YearBuilt > 1800)
+
+summary(melExtended$YearBuilt)
+
+```
+```{r}
+# Turning YearBuilt into a range of factors
+# 1 = 1800 -1899
+# 2 = 1900 - 1949
+# 3 = 1950 - 1999
+# 4 = 1999 - 2018
+
+
+# adding column BuildYear for range of years built
+melExtended$BuildYear  = 0
+
+melExtended$BuildYear[melExtended$YearBuilt <= 1899] = 1
+melExtended$BuildYear[melExtended$YearBuilt >= 1900 & melExtended$YearBuilt<= 1949] = 2
+melExtended$BuildYear[melExtended$YearBuilt >= 1950 & melExtended$YearBuilt<= 1999] = 3
+melExtended$BuildYear[melExtended$YearBuilt >= 2000 & melExtended$YearBuilt<= 2018] = 4
+
+glimpse(melExtended) #verifying BuildYear is created
+```
+
+```{r}
+
+# turn BuildYear into a factor
+melExtended$BuildYear <- as.factor(melExtended$BuildYear)
+
+# drop year built
+
+melExtended <- melExtended %>%
+  select(- YearBuilt)
+
+glimpse(melExtended)
+
+```
+
+```{r}
+
+# Eliminate any home where it is claimed it has more bathrooms than rooms
+
+melExtended <- melExtended %>%
+    filter(Bathroom < Rooms)
+
+# Elinimate any home claiming to have 0 bathrooms or more and 5 (Reason to believe more than 5 is a building of units sold as a whole in most cases)
+melExtended <- melExtended %>%
+  filter(Bathroom > 0 & Bathroom <= 5)
+
+# Eliminate any home with 0 Landsize
+melExtended<- melExtended %>%
+    filter(Landsize > 0)
+
+# using this link https://www.smh.com.au/business/melbournes-apartment-sizes-face-more-scrutiny-20150414-1mkuj4.html
+# setting a lowest value of 40, this 10 square meters lower than 2002 requirements
+
+melExtended <- melExtended %>%
+    filter(Landsize >= 40)
+
+
+# eliminating any lot over 1500
+
+melExtended <- melExtended %>%
+  filter(Landsize < 1500)
+
+melExtended <- melExtended %>%
+  filter(BuildingArea >= 40) # same as above with relation to landsize
+
+summary(melExtended)
+
+
+```
+
+```{r}
+
+# Eliminate any property where building area is > land size
+
+melExtended <- melExtended %>%
+  filter(BuildingArea < Landsize)
+
+summary(melExtended)
+
+```
+
+```{r}
+
+# remove categorical to get numeric only
+
+melExCorr <- melExtended %>%
+   select(- Type, - Month, - Year, - Region, - BuildYear)
+
+library(corrplot)
+corrplot(cor(melExCorr), method = 'number')
+
+# Nothing as of now will be dropped as there is no correlation above 80
+
+```
+
+```{r}
+
+#separate into 4 groups, all, house, unit, townhouse (h/u/t) while dropping 'Type'
+
+
+mxapartment <- melExtended %>%
+   filter(Type == 'u') %>%
+   select(- Type)
+
+mxhouse <- melExtended %>%
+    filter(Type == 'h') %>%
+    select(- Type)
+
+mxtownhouse <- melExtended %>%
+    filter(Type == 't') %>%
+    select( - Type)
+
+# the forth group will remain using melExtended
+
+```
+
+```{r}
+
+# checking strength of variables & models adjusted R-squared prior to inspecting and normalizing variables
+
+# note these models are useless if they do not meet the assumptions
+
+set.seed(99)
+
+(summary(lm(Price ~., data = mxapartment))) 
+(summary(lm(Price ~., data = mxtownhouse))) 
+(summary(lm(Price ~., data = mxhouse))) 
+
+```
+
+
+```{r}
+
+
+melHouseStart <- read.csv("~/Desktop/Melbourne data project/melbourne-housing-market/Melbourne_housing_FULL.csv")
+
+
+library(tidyverse)
+
+#----------------
+
+melHouseStart <- as.tibble(melHouseStart)
+
+# check the structure
+str(melHouseStart)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+
+# Fix data types
+# changing Distance to numeric, Propertycount to numeric, Date to date /d/m/y date format
+
+
+melHouseStart$Distance <- as.numeric(as.character(melHouseStart$Distance))
+
+melHouseStart$Propertycount <- as.numeric(as.character(melHouseStart$Propertycount))
+
+melHouseStart$Date <- as.Date(melHouseStart$Date, "%d/%m/%Y")
+
+#confirming the changes
+glimpse(melHouseStart)
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+# Adding month and year to the columns & correcting spelling on 
+
+melHouse <- melHouseStart %>%
+  mutate(Month = as.factor(strftime(Date, "%m")),
+         Year = as.factor(strftime(Date, "%y"))) %>%
+  rename("Lat" = "Lattitude", "Long" = "Longtitude", "Region" = "Regionname", "PropertyCount" = "Propertycount")
+
+glimpse(melHouse) # verifying that the columns were created and renamed
+
+```
+
+```{r}
+# Finding the descriptive statistics
+
+summary(melHouse) # descriptive statistics with out standard deviation
+
+```
+
+```{r}
+
+# getting standard deviation for each variable
+
+melHouseSD <- melHouse %>%
+  summarise_all(funs(sd(., na.rm=TRUE)))
+
+glimpse(melHouseSD) # getting a clean print out of the SD values
+
+```
+
+```{r}
+# checking NA values
+
+library(Amelia)
+missmap(melHouse) # visualise missing values
+
+```
+
+```{r}
+
+# Actual NA values followed by percentage of NA values
+
+colSums(is.na(melHouse))
+
+# Finding the percentage of NA values per variable
+
+colMeans(is.na(melHouse))*100
+
+```
+
+```{r}
+
+# inspecting rooms vs bedroom2 as Bedroom2 was scraped from a different source
+
+melHouse %>%
+  select(Rooms, Bedroom2)
+
+# inspecting the rows that are not equal to each other
+melHouse %>%
+  select(Rooms, Bedroom2) %>%
+  filter(Rooms != Bedroom2)
+
+# getting a count of how many rows contain the same values
+melHouse %>%
+  select(Rooms, Bedroom2) %>%
+  count(Rooms == Bedroom2)
+
+# checking the correlation
+cor.test(melHouse$Rooms, melHouse$Bedroom2)
+
+# Drop Bedroom2 due to multicolinearity issues
+
+```
+
+```{r}
+
+(melExtended <- select(melHouse, - SellerG, - Lat, - Long, 
+                           - Method, - Suburb, -Postcode, -Address, 
+                           - PropertyCount, - CouncilArea, - Bedroom2, - Date))
+
+```
+
+```{r}
+
+# Getting rid of any NA values
+
+melExtended <- na.omit(melExtended)
+str(melExtended)
+summary(melExtended)
+
+```
+
+```{r}
+
+# YearBuilt 2019 does not exist yet, might be a presale, but will be removed
+
+# seeing how many homes claim to be built after 2018 & deleting anything greater than 2018
+
+melExtended %>%
+  select(YearBuilt) %>%
+  filter(YearBuilt > 2018)
+
+melExtended <- melExtended %>%
+  filter(YearBuilt <= 2018)
+
+summary(melExtended$YearBuilt) # veridying max is no greater than 2018
+
+```
+
+```{r}
+
+# checking for homes built before 1800
+
+melExtended %>%
+  select(YearBuilt) %>%
+  filter(YearBuilt < 1800)
+
+# unsure of anything built in 1196, therefore it is being removed
+
+melExtended <- melExtended %>%
+  filter(YearBuilt > 1800)
+
+summary(melExtended$YearBuilt)
+
+```
+```{r}
+# Turning YearBuilt into a range of factors
+# 1 = 1800 -1899
+# 2 = 1900 - 1949
+# 3 = 1950 - 1999
+# 4 = 1999 - 2018
+
+
+# adding column BuildYear for range of years built
+melExtended$BuildYear  = 0
+
+melExtended$BuildYear[melExtended$YearBuilt <= 1899] = 1
+melExtended$BuildYear[melExtended$YearBuilt >= 1900 & melExtended$YearBuilt<= 1949] = 2
+melExtended$BuildYear[melExtended$YearBuilt >= 1950 & melExtended$YearBuilt<= 1999] = 3
+melExtended$BuildYear[melExtended$YearBuilt >= 2000 & melExtended$YearBuilt<= 2018] = 4
+
+glimpse(melExtended) #verifying BuildYear is created
+```
+
+```{r}
+
+# turn BuildYear into a factor
+melExtended$BuildYear <- as.factor(melExtended$BuildYear)
+
+# drop year built
+
+melExtended <- melExtended %>%
+  select(- YearBuilt)
+
+glimpse(melExtended)
+
+```
+
+```{r}
+
+# Eliminate any home where it is claimed it has more bathrooms than rooms
+
+melExtended <- melExtended %>%
+    filter(Bathroom < Rooms)
+
+# Elinimate any home claiming to have 0 bathrooms or more and 5 (Reason to believe more than 5 is a building of units sold as a whole in most cases)
+melExtended <- melExtended %>%
+  filter(Bathroom > 0 & Bathroom <= 5)
+
+# Eliminate any home with 0 Landsize
+melExtended<- melExtended %>%
+    filter(Landsize > 0)
+
+# using this link https://www.smh.com.au/business/melbournes-apartment-sizes-face-more-scrutiny-20150414-1mkuj4.html
+# setting a lowest value of 40, this 10 square meters lower than 2002 requirements
+
+melExtended <- melExtended %>%
+    filter(Landsize >= 40)
+
+
+# eliminating any lot over 1500
+
+melExtended <- melExtended %>%
+  filter(Landsize < 1500)
+
+melExtended <- melExtended %>%
+  filter(BuildingArea >= 40) # same as above with relation to landsize
+
+summary(melExtended)
+
+
+```
+
+```{r}
+
+# Eliminate any property where building area is > land size
+
+melExtended <- melExtended %>%
+  filter(BuildingArea < Landsize)
+
+summary(melExtended)
+
+```
+
+```{r}
+
+# remove categorical to get numeric only
+
+melExCorr <- melExtended %>%
+   select(- Type, - Month, - Year, - Region, - BuildYear)
+
+library(corrplot)
+corrplot(cor(melExCorr), method = 'number')
+
+# Nothing as of now will be dropped as there is no correlation above 80
+
+```
+
+```{r}
+
+#separate into 4 groups, all, house, unit, townhouse (h/u/t) while dropping 'Type'
+
+
+mxapartment <- melExtended %>%
+   filter(Type == 'u') %>%
+   select(- Type)
+
+mxhouse <- melExtended %>%
+    filter(Type == 'h') %>%
+    select(- Type)
+
+mxtownhouse <- melExtended %>%
+    filter(Type == 't') %>%
+    select( - Type)
+
+# the forth group will remain using melExtended
+
+```
 
 
 ```{r}
